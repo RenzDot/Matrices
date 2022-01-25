@@ -3,7 +3,7 @@
 namespace RenzLibraries
 {
     public class Matrix {
-        static double[][] matrix;
+        double[][] matrix;
 
         public Matrix() {}
         /*
@@ -12,10 +12,11 @@ namespace RenzLibraries
         */
 
         public Matrix(int rowSize, int colSize) {
-            double[][] result = new double[rows][];
-            for (int i = 0; i < rows; ++i)
-                result[i] = new double[cols];
-            matrix = result;
+            double[][] emptyMatrix = new double[rowSize][];
+            for (int i = 0; i < rowSize; i++) {
+                emptyMatrix[i] = new double[colSize];
+            }
+            matrix = emptyMatrix;
         }
 
         public void Set(int row, int col, double val) {
@@ -89,13 +90,15 @@ namespace RenzLibraries
         }
 
         public Matrix Transpose() {
-            Matrix Transpose = new Matrix(matrix[0].Length, matrix.Length);
+            /*Matrix Transpose = new Matrix(matrix[0].Length, matrix.Length);
             for (int i = 0; i < matrix.Length; i++) {
                 for (int j = 0; j < matrix[0].Length; j++) {
                     Transpose.Set(j, i, matrix[i][j]);
                 }
             }
             return Transpose;
+            */
+            return this;
         }
 
         public Matrix Add(Matrix m) {
