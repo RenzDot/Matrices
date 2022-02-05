@@ -4,26 +4,42 @@ namespace RenzLibraries.Test
 {
     public class Tests
     {
+        Matrix MatrixA, MatrixB, MatrixC, MatrixD;
         [SetUp]
         public void Setup() {
+            MatrixA = new Matrix(2, 3);
+            MatrixA.SetRow(0, new double[] { 2, 3, 5 });
+            MatrixA.SetRow(1, new double[] { 7, 11, 13 });
+
+            MatrixB = new Matrix(2, 3);
+            MatrixB.SetRow(0, new double[] { 17, 19, 23 });
+            MatrixB.SetRow(1, new double[] { 29, 31, 33 });
+
+            MatrixC = new Matrix(4, 3);
+            MatrixC.SetRow(0, new double[] { 1d, 0d, -1d });
+            MatrixC.SetRow(1, new double[] { 2d, 7d, -5d });
+            MatrixC.SetRow(2, new double[] { 4d, -3d, 2d });
+            MatrixC.SetRow(3, new double[] { -1d, 3d, 0d });
+
+            MatrixD = new Matrix(3, 4);
+            MatrixD.SetRow(0, new double[] { 1d, 2d, 4d,-1d });
+            MatrixD.SetRow(1, new double[] { 0d, 7d,-3d, 3d });
+            MatrixD.SetRow(2, new double[] {-1d,-5d, 2d, 0d });
         }
 
         [Test]
-        public void MatrixTranspose_Assigned() {
-            Matrix A = new Matrix(4, 3);
-            A.SetRow(0, new double[] { 1d, 0d, -1d });
-            A.SetRow(1, new double[] { 2d, 7d, -5d });
-            A.SetRow(2, new double[] { 4d, -3d, 2d });
-            A.SetRow(3, new double[] { -1d, 3d, 0d });
-            //[[1,0,-1],[2,7,-5],[4,-3,2],[-1,3,0]]
+        public void MatrixTranspose_CorrectTransposeSize() {
+            Matrix Transpose = MatrixC.Transpose();
+            Assert.AreEqual(Transpose.GetColumn(0).Length, MatrixD.GetColumn(0).Length);
+            Assert.AreEqual(Transpose.GetRow(0).Length, MatrixD.GetRow(0).Length);
+        }
 
-            //[[1,2,4,-1],[0,7,-3,3],[-1,-5,2,0]]
-            Matrix B = A.Transpose();
-            Assert.AreEqual(B.GetColumn(0).Length, 3);
-            Assert.AreEqual(B.GetRow(0).Length, 4);
-            Assert.AreEqual(B.Get(0, 1), 2);
-            Assert.AreEqual(B.Get(1, 2), -3);
-            Assert.AreEqual(B.Get(1, 3), 3);
+        [Test]
+        public void MatrixTranspose_CorrectTransposeValues() {
+            Matrix Transpose = MatrixC.Transpose();
+            for (int i = 0; i < Transpose.GetColumn(0).Length; i++) {
+                Assert.AreEqual(Transpose.GetRow(i), MatrixD.GetRow(i));
+            }
         }
 
         [Test]
@@ -47,6 +63,7 @@ namespace RenzLibraries.Test
 
             A.SetRow(0, new double[] { 2, 3, 5 });
             A.SetRow(1, new double[] { 7, 11, 13 });
+
             B.SetRow(0, new double[] { 17, 19, 23 });
             B.SetRow(1, new double[] { 29, 31, 33 });
 

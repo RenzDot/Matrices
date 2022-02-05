@@ -90,15 +90,13 @@ namespace RenzLibraries
         }
 
         public Matrix Transpose() {
-            /*Matrix Transpose = new Matrix(matrix[0].Length, matrix.Length);
+            Matrix Transpose = new Matrix(matrix[0].Length, matrix.Length);
             for (int i = 0; i < matrix.Length; i++) {
                 for (int j = 0; j < matrix[0].Length; j++) {
                     Transpose.Set(j, i, matrix[i][j]);
                 }
             }
             return Transpose;
-            */
-            return this;
         }
 
         public Matrix Add(Matrix m) {
