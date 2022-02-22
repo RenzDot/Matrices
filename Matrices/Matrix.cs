@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace RenzLibraries
 {
@@ -10,6 +11,44 @@ namespace RenzLibraries
          [[1,0],
           [0,1]]
         */
+        
+        public Matrix Cholesky() {
+            if (! IsSymmetric()) {
+                throw new Exception("Cannot get Cholesky as Matrix is not symmetric");
+            }
+
+            int n = GetRow(0).Length;
+            Matrix cholesky = new Matrix(n, n);
+            double diagonal = 0;
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    double element = Get(i, j);
+                    if (i==j) {
+                        diagonal = element;
+                        cholesky.Set(i, j, Math.Sqrt(diagonal));
+                    } else {
+                        cholesky.Set(i, j, element/diagonal);
+                    }
+                }
+            }
+
+            return cholesky;
+        }
+
+        public bool IsSymmetric() {
+            //Matrix A is symmetric when A = Transpose(A)
+            Matrix transpose = Transpose();
+            if (GetRow(0).Length != transpose.GetColumn(0).Length) {
+                return false;
+            }
+
+            for (int i = 0; i < GetRow(0).Length; i++) {
+                if (    !GetRow(i).SequenceEqual(transpose.GetRow(i))    ) {
+                    return false;
+                }
+            }
+            return true;
+        }
 
         public Matrix(int rowSize, int colSize) {
             double[][] emptyMatrix = new double[rowSize][];
@@ -18,7 +57,6 @@ namespace RenzLibraries
             }
             matrix = emptyMatrix;
         }
-
         public void Set(int row, int col, double val) {
             matrix[row][col] = val;
         }
@@ -40,27 +78,22 @@ namespace RenzLibraries
             }
             return column;
         }
-
         public double[] GetRow(int row) {
             return matrix[row];
         }
-
         public double[][] GetDouble() {
             return matrix;
         }
 
-
         public Matrix Multiply(Matrix m) {
-            double dotProduct = 0;
-            int rowLen = m.GetColumn(0).Length;
-            int colLen = matrix[0].Length;
-            if (rowLen != colLen) {
-                throw new Exception("Matrix column size is not equal to multiplying matrices row size");
+            int rowCheck = m.GetColumn(0).Length;
+            int colCheck = matrix[0].Length;
+            if (rowCheck != colCheck) {
+                throw new Exception("Cannot multiply matrices as multiplicand's column length is not the same as multiplier's row length");
             };
 
+            double dotProduct = 0;
             Matrix product = new Matrix(matrix.Length, m.GetRow(0).Length);
-            //A -> 0,0 0,1 0,2
-            //B -> 0,0 1,0 2,0
             for (int i = 0; i < matrix.Length; i++) {
                 double[] row = matrix[i];
 
@@ -73,9 +106,7 @@ namespace RenzLibraries
                     product.Set(i, j, dotProduct);
                     dotProduct = 0;
                 }
-
             }
-
             return product;
         }
 
@@ -141,7 +172,7 @@ namespace RenzLibraries
             }
 
             if (Determinant(mat) == 0) {
-                throw new Exception("Matrix determinant is zero and so cannot be inverted");
+                throw new Exception("Cannot invert Matrix as it's determinant is zero");
             }
 
             //2x2 Inverse
@@ -170,7 +201,7 @@ namespace RenzLibraries
         }
 
         public static double Determinant(double[][] mat) {
-            if (mat.Length != mat[0].Length) { throw new Exception("Matrix is not sqaure"); };
+            if (mat.Length != mat[0].Length) { throw new Exception("Cannot get determinant as Matrix is not square"); };
             double result = 0;
             if (mat.Length == 1) {
                 result = mat[0][0];
