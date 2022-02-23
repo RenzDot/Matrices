@@ -1,4 +1,6 @@
 using NUnit.Framework;
+using System;
+using System.Linq;
 
 namespace RenzLibraries.Test
 {
@@ -28,111 +30,140 @@ namespace RenzLibraries.Test
         }
 
         [Test]
-        public void Matrix_IsSymmetric_SymmetricInputIsTrue() {
+        public void Matrix_IsSymmetric_TrueWhenSymmetric() {
             Matrix A = new Matrix(3, 3);
             A.SetRow(0, new double[] { 1, 7, 3});
             A.SetRow(1, new double[] { 7, 4, 5});
             A.SetRow(2, new double[] { 3, 5, 0});
 
-            //Assert.IsFalse(MatrixD.IsSymmetric());
+            Assert.IsFalse(MatrixD.IsSymmetric());
             Assert.IsTrue(A.IsSymmetric());
         }
 
         [Test]
-        public void Matrix_Cholesky_AssignsLowerTriangle() {
+        public void Matrix_Cholesky_OutputsUpperTriangleMatrix() {
             Matrix A = new Matrix(3, 3);
-            A.SetRow(0, new double[] {4, 2, -2});
-            A.SetRow(1, new double[] {2, 1, -1});
-            A.SetRow(2, new double[] {-2, -1, 10});
-            /*
-            [ 4  -2  -6]        [ 2   0   0]
-            [-2  10   9]        [-1   3   0]
-            [-6   9  14]    ->  [-3   2   1]
-            */
+            A.SetRow(0, new double[] {4, -2, -6});
+            A.SetRow(1, new double[] {-2, 10, 9});
+            A.SetRow(2, new double[] {-6, 9, 14});
+
+            Matrix choleskyExpected = new Matrix(3, 3);
+            choleskyExpected.SetRow(0, new double[] { 2, -1, -3 });
+            choleskyExpected.SetRow(1, new double[] { 0, 3, 2 });
+            choleskyExpected.SetRow(2, new double[] { 0, 0, 1 });
+
+            Matrix choleskyActual = A.Cholesky(true);
+            Assert.AreEqual(choleskyExpected.GetRow(0), choleskyActual.GetRow(0));
+            Assert.AreEqual(choleskyExpected.GetRow(1), choleskyActual.GetRow(1));
+            Assert.AreEqual(choleskyExpected.GetRow(2), choleskyActual.GetRow(2));
+        }
+
+        [Test]
+        public void Matrix_Cholesky_SingularInputOutputsSinglar() {
+            Matrix A = new Matrix(2,2);
+            A.SetRow(0, new double[] { 1, 1 });
+            A.SetRow(1, new double[] { 1, 1 });
 
             Matrix cholesky = A.Cholesky();
-            Assert.IsTrue(false);
+            Assert.IsTrue(cholesky.Determinant() == 0);//Singular Outputs have determinant == 0
         }
 
         [Test]
-        public void Matrix_Cholesky_SingularInputCreatesSinglarOutput() {
-            Assert.IsTrue(false);
-            /*
-            [1 1]
-            [1 1]   ->  Singular Output with determinant = 0
-            */
+        public void Matrix_Cholesky_InputtingNegativeSemidefiniteMatricesGivesError() {
+            Matrix A = new Matrix(3, 3);
+            A.SetRow(0, new double[] { 1, 2,-1});
+            A.SetRow(1, new double[] { 2, 5, 1});
+            A.SetRow(2, new double[] {-1, 1, 9});
+
+            //Should error on last matrix element attempting to square root -1
+            var exception = Assert.Throws<Exception>(() => A.Cholesky());
+            Assert.IsTrue(exception.Message.StartsWith("Cannot get Cholesky of Matrix as it's Negative Definite or Negative Semidefinite"));
         }
 
         [Test]
-        public void Matrix_Cholesky_NegativeSemidefiniteInputException() {
-            Assert.IsTrue(false);
-            /*
-            [ 1  2 -1]
-            [ 2  5  1]
-            [-1  1  9]  -> Error on final step, calling for a square root of -1
-            */
+        public void Matrix_Cholesky_InputtingNonSymmetricInputGivesError() {
+            var exception = Assert.Throws<Exception>(() => MatrixA.Cholesky());
+            Assert.IsTrue(exception.Message.Equals("Cannot get Cholesky as Matrix is not symmetric"));
         }
 
         [Test]
-        public void Matrix_Cholesky_NonSymmetricInputException() {
-            Assert.IsTrue(false);
-            /*
-            [2.459 1.153]
-            [0.    2.496]   ->  Error
+        public void Matrix_Cholesky_NoErrorOnAssigningIndeterminantElements() {
+            //Source: https://www.glynholton.com/solutions/exercise-solution-2-10/
+            Matrix A = new Matrix(3, 3);
+            A.SetRow(0, new double[] { 4, -2, 2 });
+            A.SetRow(1, new double[] {-2, 1, -1 });
+            A.SetRow(2, new double[] { 2, -1, 5 });
+            Matrix choleskyActual = A.Cholesky();
 
-            [ 0.057  0.031  0.    -0.   ]
-            [ 0.     0.03  -0.     0.   ]
-            [ 0.     0.     0.057  0.031]
-            [ 0.     0.     0.     0.03 ]   -> Error
-            */
-        }
-
-        public void Matrix_Cholesky_AssignsValueOnIndeterminant() {
-            /*            
-            [ 4  -2   2]        [ 2  0  0]
-            [-2   1  -1]        [-1  0  0]
-            [ 2  -1   5]    ->  [ 1  0  2] 
-            Source: https://www.value-at-risk.net/cholesky-factorization/ 
-            Here, x is indeterminant and is set to zero
-            */
+            Assert.AreEqual(new double[] { 2, 0, 0 }, choleskyActual.GetRow(0));
+            Assert.AreEqual(new double[] {-1, 0, 0 }, choleskyActual.GetRow(1));
+            Assert.AreEqual(new double[] { 1, 0, 2 }, choleskyActual.GetRow(2));
         }
 
         [Test]
-        public void Matrix_Cholesky_AssignsValue() {
+        public void Matrix_Cholesky_AssignsCorrect3x3Matrix() {
+            Matrix C = new Matrix(3, 3);
+            C.SetRow(0, new double[] { 16.38, 2.633, -0.71 });
+            C.SetRow(1, new double[] { 2.633, 0.435, 0.01 });
+            C.SetRow(2, new double[] { -0.71, 0.01, 6.848 });
+
+            Matrix cholesky = C.Cholesky();
+            Assert.AreEqual(new double[] { 4.047, 0, 0 }, cholesky.GetRow(0).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { 0.651, 0.108, 0 }, cholesky.GetRow(1).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { -0.175, 1.145, 2.347 }, cholesky.GetRow(2).Select(d => Math.Round(d, 3)).ToArray());
+        }
+
+        [Test]
+        public void Matrix_Cholesky_AssignsCorrectNxNMatrix() {
             Matrix A = new Matrix(2, 2);
-            A.SetRow(0, new double[] { 6.048, 2.835 });
+            A.SetRow(0, new double[] { 6.048, 2.835});
             A.SetRow(1, new double[] { 2.835, 7.56 });
 
+            Matrix B = new Matrix(2, 2);
+            B.SetRow(0, new double[] { 1.08, 0.54 });
+            B.SetRow(1, new double[] { 0.54, 1.08 });
+
+            Matrix D = new Matrix(3, 3);
+            D.SetRow(0, new double[] { 16.455, 2.631, -1.027});
+            D.SetRow(1, new double[] { 2.631, 0.435,   0.01 });
+            D.SetRow(2, new double[] { -1.027, 0.01,  7.396 });
+
+            Matrix E = new Matrix(4, 4);
+            E.SetRow(0, new double[] { 0.05, 0, 0, 0 });
+            E.SetRow(1, new double[] { 0, 0.05, 0, 0 });
+            E.SetRow(2, new double[] { 0, 0, 0.05, 0 });
+            E.SetRow(3, new double[] { 0, 0, 0, 0.05 });
+
+            Matrix F = new Matrix(4, 4);
+            F.SetRow(0, new double[] { 0.003, 0.002, 0, 0 });
+            F.SetRow(1, new double[] { 0.002, 0.002, 0, 0 });
+            F.SetRow(2, new double[] { 0, 0, 0.003, 0.002 });
+            F.SetRow(3, new double[] { 0, 0, 0.002, 0.002 });
+
             Matrix cholesky = A.Cholesky();
+            Assert.AreEqual(new double[] { 2.459, 0d }, cholesky.GetRow(0).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { 1.153, 2.496 }, cholesky.GetRow(1).Select(d => Math.Round(d, 3)).ToArray());
 
-            /*
-            For Kalman Filter, Lambda will make the input symmetrical for Cholesky
-            Source: Test Values taken from IPython Kalman Filter
-            [6.048 2.835]    [2.459 1.153]
-            [2.835 7.56 ] -> [0.    2.496] 
+            cholesky = B.Cholesky();
+            Assert.AreEqual(new double[] { 1.039, 0 }, cholesky.GetRow(0).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { 0.52, 0.9 }, cholesky.GetRow(1).Select(d => Math.Round(d, 3)).ToArray());
 
-            [1.08 0.54]     [1.039 0.52 ]
-            [0.54 1.08] ->  [0.    0.9  ]
+            cholesky = D.Cholesky();
+            Assert.AreEqual(new double[] { 4.056, 0, 0 }, cholesky.GetRow(0).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { 0.649, 0.12, 0 }, cholesky.GetRow(1).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { -0.253, 1.455, 2.283 }, cholesky.GetRow(2).Select(d => Math.Round(d, 3)).ToArray());
 
-            [16.38   2.633 -0.71 ]      [ 4.047  0.65  -0.175]
-            [ 2.633  0.435  0.01 ]      [ 0.     0.111  1.118]
-            [-0.71   0.01   6.848]  ->  [ 0.     0.     2.359]
+            cholesky = E.Cholesky();
+            Assert.AreEqual(new double[] { 0.224, 0, 0, 0 }, cholesky.GetRow(0).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { 0, 0.224, 0, 0 }, cholesky.GetRow(1).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { 0, 0, 0.224, 0 }, cholesky.GetRow(2).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { 0, 0, 0, 0.224 }, cholesky.GetRow(3).Select(d => Math.Round(d, 3)).ToArray());
 
-            [16.455  2.631 -1.027]      [ 4.056  0.649 -0.253]
-            [ 2.631  0.436  0.019]      [ 0.     0.122  1.507]
-            [-1.027  0.019  7.396]  ->  [ 0.     0.     2.25 ]
-
-            [0.05 0.   0.   0.  ]       [0.224 0.    0.    0.   ]
-            [0.   0.05 0.   0.  ]       [0.    0.224 0.    0.   ]
-            [0.   0.   0.05 0.  ]       [0.    0.    0.224 0.   ]
-            [0.   0.   0.   0.05]   ->  [0.    0.    0.    0.224]
-
-            [ 0.003  0.002  0.    -0.   ]       [ 0.057  0.031  0.    -0.   ]
-            [ 0.002  0.002 -0.     0.   ]       [ 0.     0.03  -0.     0.   ]
-            [ 0.    -0.     0.003  0.002]       [ 0.     0.     0.057  0.031]
-            [-0.     0.     0.002  0.002]   ->  [ 0.     0.     0.     0.03 ]
-            */
-            Assert.IsTrue(false);
+            cholesky = F.Cholesky();
+            Assert.AreEqual(new double[] { 0.055, 0, 0, 0 }, cholesky.GetRow(0).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { 0.037, 0.026, 0, 0 }, cholesky.GetRow(1).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { 0, 0, 0.055, 0 }, cholesky.GetRow(2).Select(d => Math.Round(d, 3)).ToArray());
+            Assert.AreEqual(new double[] { 0, 0, 0.037, 0.026 }, cholesky.GetRow(3).Select(d => Math.Round(d, 3)).ToArray());
         }
 
         [Test]
@@ -151,7 +182,7 @@ namespace RenzLibraries.Test
         }
 
         [Test]
-        public void Matrix_SetRow_AssignsValue() {
+        public void Matrix_SetRow_AssignsRow() {
             double a = 2;
             double[] value = new double[] { 1, a };
 
@@ -206,14 +237,14 @@ namespace RenzLibraries.Test
         }
 
         [Test]
-        public void Matrix_GetColumn_Returns() {
+        public void Matrix_GetColumn_ReturnsColumn() {
             double[] secondColumn = MatrixA.GetColumn(1);
             Assert.AreEqual(secondColumn[0], MatrixA.Get(0,1));
             Assert.AreEqual(secondColumn[1], MatrixA.Get(1,1));
         }
 
         [Test]
-        public void Matrix_GetRow_Returns() {
+        public void Matrix_GetRow_ReturnsRow() {
             double[] firstRow = MatrixA.GetRow(0);
             Assert.AreEqual(firstRow[0], MatrixA.Get(0,0));
             Assert.AreEqual(firstRow[1], MatrixA.Get(0,1));
@@ -221,12 +252,12 @@ namespace RenzLibraries.Test
         }
 
         [Test]
-        public void Matrix_Multiply_Returns() {
+        public void Matrix_Multiply_CorrectScalarProduct() {
             double scalar = 2d;
             Matrix product = MatrixA.Multiply(scalar);
             Assert.AreEqual(product.Get(0,0), MatrixA.Get(0,0) * scalar);
             Assert.AreEqual(product.Get(1,0), MatrixA.Get(1,0) * scalar);
-            Assert.AreEqual(product.Get(2,2), MatrixA.Get(2,2) * scalar);
+            Assert.AreEqual(product.Get(1,2), MatrixA.Get(1,2) * scalar);
         }
 
         [Test]
@@ -242,7 +273,7 @@ namespace RenzLibraries.Test
         }
 
         [Test]
-        public void Matrix_Multiply_RejectWrongInputSize() {
+        public void Matrix_Multiply_IncorrectMatrixSizeGivesError() {
             Matrix A = new Matrix(1, 2);
             Matrix B = new Matrix(1, 2);
 
@@ -250,7 +281,7 @@ namespace RenzLibraries.Test
         }
 
         [Test]
-        public void Matrix_Multiply_CorrectProductValues() {
+        public void Matrix_Multiply_CorrectMatrixProduct() {
             Matrix product = MatrixA.Multiply(MatrixD);
 
             double[] row0 = MatrixA.GetRow(0);
@@ -268,7 +299,7 @@ namespace RenzLibraries.Test
         }
 
         [Test]
-        public void Matrix_Determinant_Returns() {
+        public void Matrix_Determinant_CorrectDeterminant() {
             Matrix A = new Matrix(2, 2);
             A.SetRow(0, new double[] { 0, 3 });
             A.SetRow(1, new double[] { 4, 7 });
@@ -278,17 +309,17 @@ namespace RenzLibraries.Test
             B.SetRow(1, new double[] { 5, 7, 13 });
             B.SetRow(2, new double[] { 17, 19, 23 });
 
-            Assert.AreEqual(Matrix.Determinant(A.GetDouble()), -12);
-            Assert.AreEqual(Matrix.Determinant(B.GetDouble()), 140);
+            Assert.AreEqual(A.Determinant(), -12);
+            Assert.AreEqual(B.Determinant(), 140);
         }
 
         [Test]
-        public void Matrix_Inverse2x2_Returns() {
+        public void Matrix_Inverse2x2_CorrectInverse() {
             Matrix A = new Matrix(2, 2);
             A.SetRow(0, new double[] { 4, 7 });
             A.SetRow(1, new double[] { 2, 6 });
 
-            Matrix B = Matrix.Invert_2x2(A.GetDouble());
+            Matrix B = A.Invert_2x2();
             Assert.AreEqual(B.Get(0, 0), 0.6);
             Assert.AreEqual(B.Get(0, 1), -0.7);
             Assert.AreEqual(B.Get(1, 0), -0.2);
