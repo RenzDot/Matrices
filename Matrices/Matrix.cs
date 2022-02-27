@@ -16,10 +16,6 @@ namespace RenzLibraries
             return _Cholesky();
         }
 
-        public string ToString() {
-            return matrix.ToString();
-        }
-
         public Matrix Cholesky(bool doOutputUpperTriangle) {
             if (doOutputUpperTriangle) {
                 return _Cholesky().Transpose();
@@ -66,7 +62,6 @@ namespace RenzLibraries
             if (GetRow(0).Length != transpose.GetColumn(0).Length) {
                 return false;
             }
-
             for (int i = 0; i < GetRow(0).Length; i++) {
                 if (    !GetRow(i).SequenceEqual(transpose.GetRow(i))    ) {
                     return false;
