@@ -48,7 +48,7 @@ namespace RenzLibraries.Test
             A.SetRow(2, new double[] {-6, 9, 14});
 
             Matrix choleskyExpected = new Matrix(3, 3);
-            choleskyExpected.SetRow(0, new double[] { 2, -1, -3 });
+            choleskyExpected.SetRow(0, new double[] { 2,-1,-3 });
             choleskyExpected.SetRow(1, new double[] { 0, 3, 2 });
             choleskyExpected.SetRow(2, new double[] { 0, 0, 1 });
 
@@ -69,7 +69,7 @@ namespace RenzLibraries.Test
         }
 
         [Test]
-        public void Matrix_Cholesky_InputtingNegativeSemidefiniteMatricesGivesError() {
+        public void Matrix_Cholesky_NegativeSemidefiniteMatricesGivesError() {
             Matrix A = new Matrix(3, 3);
             A.SetRow(0, new double[] { 1, 2,-1});
             A.SetRow(1, new double[] { 2, 5, 1});
@@ -81,7 +81,7 @@ namespace RenzLibraries.Test
         }
 
         [Test]
-        public void Matrix_Cholesky_InputtingNonSymmetricInputGivesError() {
+        public void Matrix_Cholesky_NonSymmetricInputGivesError() {
             var exception = Assert.Throws<Exception>(() => MatrixA.Cholesky());
             Assert.IsTrue(exception.Message.Equals("Cannot get Cholesky as Matrix is not symmetric"));
         }
@@ -299,6 +299,25 @@ namespace RenzLibraries.Test
         }
 
         [Test]
+        public void Matrix_Multiply_NonSquareMatrixInputIsCorrect() {
+            Matrix A = new Matrix(4, 2);
+            A.SetRow(0, new double[] { 2, 0 });
+            A.SetRow(1, new double[] { 1, 0 });
+            A.SetRow(2, new double[] { 0, 2 });
+            A.SetRow(3, new double[] { 0, 1 });
+
+            Matrix B = new Matrix(2, 2);
+            B.SetRow(0, new double[] { 0.4784689, 0 });
+            B.SetRow(1, new double[] { 0, 0.4784689 });
+
+            Matrix product = A.Multiply(B);
+            Assert.AreEqual(new double[] { 0.9569378, 0 }, product.GetRow(0).Select(x => Math.Round(x, 7)));
+            Assert.AreEqual(new double[] { 0.4784689, 0 }, product.GetRow(1).Select(x => Math.Round(x, 7)));
+            Assert.AreEqual(new double[] { 0, 0.9569378 }, product.GetRow(2).Select(x => Math.Round(x, 7)));
+            Assert.AreEqual(new double[] { 0, 0.4784689 }, product.GetRow(3).Select(x => Math.Round(x, 7)));
+        }
+
+        [Test]
         public void Matrix_Determinant_CorrectDeterminant() {
             Matrix A = new Matrix(2, 2);
             A.SetRow(0, new double[] { 0, 3 });
@@ -320,10 +339,17 @@ namespace RenzLibraries.Test
             A.SetRow(1, new double[] { 2, 6 });
 
             Matrix B = A.Invert_2x2();
-            Assert.AreEqual(B.Get(0, 0), 0.6);
-            Assert.AreEqual(B.Get(0, 1), -0.7);
-            Assert.AreEqual(B.Get(1, 0), -0.2);
-            Assert.AreEqual(B.Get(1, 1), 0.4);
+            Assert.AreEqual(new double[] {0.6, -0.7}, B.GetRow(0));
+            Assert.AreEqual(new double[] {-0.2, 0.4}, B.GetRow(1));
+
+            Matrix C = new Matrix(2, 2);
+            C.SetRow(0, new double[] { 2.09, 0});
+            C.SetRow(1, new double[] { 0, 2.09});
+
+            Matrix D = C.Invert_2x2();
+            Assert.AreEqual(new double[] { 0.4784689, 0 }, D.GetRow(0).Select(x => Math.Round(x, 7)));
+            Assert.AreEqual(new double[] { 0, 0.4784689 }, D.GetRow(1).Select(x => Math.Round(x, 7)));
+
         }
     }
 }

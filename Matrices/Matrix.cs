@@ -24,7 +24,7 @@ namespace RenzLibraries
             }
         }
 
-        private Matrix _Cholesky() {//Source: https://rosettacode.org/wiki/Cholesky_decomposition
+        private Matrix _Cholesky() {
             if (!IsSymmetric()) { throw new Exception($"Cannot get Cholesky as Matrix is not symmetric"); }
             int n = GetRow(0).Length;
             Matrix factor = new Matrix(n, n);
@@ -68,6 +68,10 @@ namespace RenzLibraries
                 }
             }
             return true;
+        }
+
+        public bool IsSquare() {
+            return (matrix.Length == matrix[0].Length);
         }
 
         public Matrix(int rowSize, int colSize) {
