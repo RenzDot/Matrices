@@ -4,13 +4,9 @@ using System.Linq;
 namespace RenzLibraries
 {
     public class Matrix {
-        double[][] matrix;
+        protected double[][] matrix;
 
         public Matrix() {}
-        /*
-         [[1,0],
-          [0,1]]
-        */
         
         public Matrix Cholesky() {
             return _Cholesky();
@@ -39,7 +35,7 @@ namespace RenzLibraries
                         }
                         diagonal = Get(col, col) - sum;
                         if (diagonal < 0) {
-                            throw new Exception($"Cannot get Cholesky of Matrix as it's Negative Definite or Negative Semidefinite (attempting to square root {diagonal} )");
+                            throw new Exception($"Cannot get Cholesky of Matrix as it's Negative Definite or Negative Semidefinite (attempted to square root {diagonal} )");
                         }
                         factor.Set(col, col, Math.Sqrt(diagonal));
 
@@ -75,12 +71,17 @@ namespace RenzLibraries
         }
 
         public Matrix(int rowSize, int colSize) {
+            Init(rowSize, colSize);
+        }
+
+        void Init(int rowSize, int colSize) {
             double[][] emptyMatrix = new double[rowSize][];
             for (int i = 0; i < rowSize; i++) {
                 emptyMatrix[i] = new double[colSize];
             }
             matrix = emptyMatrix;
         }
+
         public void Set(int row, int col, double val) {
             matrix[row][col] = val;
         }
